@@ -6,9 +6,9 @@ Projet interactif développé avec **p5.js** permettant :
 - la création de lecteurs audio visuels et déplaçables
 
 ## 🔗 Démo en ligne
-👉 https://mon-projet-p5.vercel.app
+soon
 
-## 🛠️ Technologies
+## Ca utilise
 - p5.js
 - p5.sound.js
 - HTML / CSS / JavaScript
