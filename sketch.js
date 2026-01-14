@@ -22,7 +22,7 @@ function preload() {
   imgOff = loadImage("robinette.png");
   imgOn  = loadImage("robinette2.png");
 
-  loadJSON("layout.json", data => {
+  loadJSON("vercel.json", data => {
     loadLayout(data);
     console.log("Layout chargé");
   });
