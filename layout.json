@@ -1,45 +1,59 @@
 {
-  "images": [
+  "version": 1,
+  "canvas": {
+    "zoom": 1,
+    "offsetX": 0,
+    "offsetY": 0
+  },
+  "players": [
     {
-      "src": "image1.jpg",
+      "type": "audio",
+      "file": "mon-son.mp3",
+      "src": "uploads/mon-son.mp3",
       "x": 300,
       "y": 200,
-      "w": 420
+      "w": 180,
+      "h": 130
     }
   ],
-
+  "images": [
+    {
+      "type": "image",
+      "src": "uploads/image1.jpg",
+      "x": 500,
+      "y": 400,
+      "w": 300,
+      "h": 200
+    }
+  ],
   "videos": [
     {
-      "src": "video1.mp4",
+      "type": "video",
+      "src": "uploads/video1.mp4",
       "x": 800,
-      "y": 250,
-      "w": 360,
-      "playing": true
+      "y": 300,
+      "w": 400,
+      "h": 225,
+      "loop": true,
+      "maxDuration": 10
     }
   ],
-
   "texts": [
     {
-      "content": "Titre principal",
       "type": "title",
+      "content": "Mon titre",
       "x": 200,
       "y": 100,
-      "maxWidth": 320
+      "w": 600,
+      "fontSize": 48
     },
     {
-      "content": "Ceci est un texte descriptif plus long, avec plusieurs lignes.",
-      "type": "body",
-      "x": 220,
+      "type": "text",
+      "content": "Texte normal",
+      "x": 200,
       "y": 180,
-      "maxWidth": 420
-    }
-  ],
-
-  "audio": [
-    {
-      "src": "son1.mp3",
-      "x": 100,
-      "y": 400
+      "w": 600,
+      "fontSize": 18
     }
   ]
 }
