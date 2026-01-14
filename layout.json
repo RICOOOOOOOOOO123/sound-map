@@ -1,0 +1,45 @@
+{
+  "images": [
+    {
+      "src": "image1.jpg",
+      "x": 300,
+      "y": 200,
+      "w": 420
+    }
+  ],
+
+  "videos": [
+    {
+      "src": "video1.mp4",
+      "x": 800,
+      "y": 250,
+      "w": 360,
+      "playing": true
+    }
+  ],
+
+  "texts": [
+    {
+      "content": "Titre principal",
+      "type": "title",
+      "x": 200,
+      "y": 100,
+      "maxWidth": 320
+    },
+    {
+      "content": "Ceci est un texte descriptif plus long, avec plusieurs lignes.",
+      "type": "body",
+      "x": 220,
+      "y": 180,
+      "maxWidth": 420
+    }
+  ],
+
+  "audio": [
+    {
+      "src": "son1.mp3",
+      "x": 100,
+      "y": 400
+    }
+  ]
+}
