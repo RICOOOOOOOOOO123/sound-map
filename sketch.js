@@ -1,31 +1,31 @@
-// ================== GLOBAL ==================
+
 let players = [];
 let images = [];
 let videos = [];
 let texts = [];
 
-let fileInputAudio, fileInputImage, fileInputVideo;
+let fileInput, fileInputImage, fileInputVideo;
+let fileInputTextTitle, fileInputTextBody;
 let imgOff, imgOn;
 
 let offsetX = 0;
 let offsetY = 0;
 let scaleFactor = 1;
 
-const BASE_PATH = "uploads/";
-
 const MODE_ADMIN = "admin";
 const MODE_PUBLIC = "public";
 let mode = MODE_PUBLIC;
 
-let savedLayout; // layout initial
+let savedLayout; // layout chargé depuis JSON
 
 // ================== PRELOAD ==================
 function preload() {
-  imgOff = loadImage("robinette.png");    // image par défaut
-  imgOn = loadImage("robinette2.png");    // image quand lecture
+  imgOff = loadImage("robinette.png");
+  imgOn = loadImage("robinette2.png");
+
   savedLayout = loadJSON("data/layout.json", layout => {
     loadLayout(layout);
-    console.log("layout chargé et appliqué");
+    console.log("Layout chargé et appliqué");
   });
 }
 
@@ -33,44 +33,41 @@ function preload() {
 function setup() {
   createCanvas(1920, 1080);
 
-  if (window.location.pathname.includes("admin") || new URLSearchParams(window.location.search).get("admin") === "1") {
-    mode = MODE_ADMIN;
-  }
+  // --------- Détecter mode admin via paramètre URL ---------
+  const params = new URLSearchParams(window.location.search);
+  if (params.get("admin") === "1") mode = MODE_ADMIN;
 
+  // --------- Boutons Admin ---------
   if (mode === MODE_ADMIN) {
-    // --- Bouton sauvegarde layout ---
-    let saveBtn = createButton("💾 Sauvegarder layout");
-    saveBtn.position(10, 320);
-    saveBtn.mousePressed(exportLayout);
+    createButton("💾 Sauvegarder layout")
+      .position(10, 320)
+      .mousePressed(exportLayout);
 
-    // --- Import audio ---
-    fileInputAudio = createFileInput(handleAudio);
-    fileInputAudio.position(10, 20);
+    fileInput = createFileInput(handleAudioFile);
+    fileInput.position(10, 20);
 
-    // --- Import image ---
-    fileInputImage = createFileInput(handleImage);
+    fileInputImage = createFileInput(handleImageFile);
     fileInputImage.position(10, 70);
 
-    // --- Import vidéo ---
-    fileInputVideo = createFileInput(handleVideo);
+    fileInputVideo = createFileInput(handleVideoFile);
     fileInputVideo.position(10, 180);
 
-    // --- Ajouter texte titre ---
-    let btnTitle = createButton("Ajouter TITRE");
-    btnTitle.position(10, 250);
-    btnTitle.mousePressed(() => {
+    fileInputTextTitle = createButton("Ajouter un TITRE");
+    fileInputTextTitle.position(10, 250);
+    fileInputTextTitle.mousePressed(() => {
       let content = prompt("Texte du titre ?");
       if (content) texts.push(new TextBlock(content, "title", 300, 200));
     });
 
-    // --- Ajouter texte normal ---
-    let btnBody = createButton("Ajouter TEXTE");
-    btnBody.position(10, 280);
-    btnBody.mousePressed(() => {
+    fileInputTextBody = createButton("Ajouter un TEXTE");
+    fileInputTextBody.position(10, 280);
+    fileInputTextBody.mousePressed(() => {
       let content = prompt("Texte du paragraphe ?");
       if (content) texts.push(new TextBlock(content, "body", 300, 300));
     });
   }
+
+  userStartAudio(); // nécessaire pour activer l'audio sur navigateur
 }
 
 // ================== DRAW ==================
@@ -81,50 +78,75 @@ function draw() {
   translate(offsetX, offsetY);
   scale(scaleFactor);
 
-  // --- Images ---
+  // Images
   for (let img of images) img.display();
   images = images.filter(img => !img.toDelete);
 
-  // --- Textes ---
+  // Textes
   for (let t of texts) t.display();
   texts = texts.filter(t => !t.toDelete);
 
-  // --- Audio ---
+  // Audio
   for (let p of players) p.display();
 
-  // --- Vidéos ---
+  // Vidéos
   for (let v of videos) v.display();
   videos = videos.filter(v => !v.toDelete);
 
   pop();
 
-  // --- Info UI ---
+  // UI Info
   noStroke();
   fill(50);
   textAlign(LEFT, TOP);
-  text("* SHIFT + drag pour déplacer le canvas", 10, 120);
-  if (mode === MODE_ADMIN) {
-    text("Importer un son, une image ou une vidéo", 10, 150);
-  }
+  text("*Appuie sur espace pour arrêter tous les sons, shift+drag pour déplacer le canvas", 10, 120);
 }
 
 // ================== MOUSE INTERACTIONS ==================
 let activeObject = null;
 
 function mousePressed() {
+  userStartAudio(); // autoriser audio au premier clic
+
+  if (mode === MODE_PUBLIC) {
+    // lecture uniquement pour audio/vidéo
+    for (let p of players) if (p.isMouseOver()) { p.toggle(); return; }
+    for (let v of videos) if (v.isOnPlayPause()) { v.mousePressed(); return; }
+    return;
+  }
+
   activeObject = null;
 
-  const objects = [...players, ...videos, ...texts, ...images].reverse();
-  for (let obj of objects) {
-    if (obj.isMouseOver() || obj.isOnCorner() || obj.isOnPlayPause ? obj.isOnPlayPause() : false) {
-      activeObject = obj;
-      if (obj.mousePressed) obj.mousePressed();
-      return;
+  // Audio
+  for (let i = players.length - 1; i >= 0; i--) {
+    let p = players[i];
+    if (p.isMouseOver()) { activeObject = p; p.mousePressed(); return; }
+  }
+
+  // Vidéo
+  for (let i = videos.length - 1; i >= 0; i--) {
+    let v = videos[i];
+    if (v.isMouseOver() || v.isOnCorner() || v.isOnPlayPause()) {
+      activeObject = v; v.mousePressed(); return;
     }
+  }
+
+  // Textes
+  for (let i = texts.length - 1; i >= 0; i--) {
+    let t = texts[i];
+    if (t.isMouseOver()) { activeObject = t; t.mousePressed(); return; }
+  }
+
+  // Images
+  for (let i = images.length - 1; i >= 0; i--) {
+    let img = images[i];
+    if (img.isMouseOver() || img.isOnCorner()) { activeObject = img; img.mousePressed(); return; }
   }
 }
 
 function mouseDragged() {
+  if (mode === MODE_PUBLIC) return;
+
   if (activeObject) activeObject.mouseDragged();
   else if (mouseIsPressed && keyIsDown(SHIFT)) {
     offsetX += movedX;
@@ -133,6 +155,7 @@ function mouseDragged() {
 }
 
 function mouseReleased() {
+  if (mode === MODE_PUBLIC) return;
   if (activeObject) activeObject.mouseReleased();
   activeObject = null;
 }
@@ -143,12 +166,9 @@ function mouseWheel(event) {
   let zoom = 1 - event.delta * zoomSpeed;
 
   let newScale = constrain(scaleFactor * zoom, 0.2, 5);
-
-  // Zoom centré sur la souris
   let worldMouse = screenToWorld(mouseX, mouseY);
   offsetX = mouseX - worldMouse.x * newScale;
   offsetY = mouseY - worldMouse.y * newScale;
-
   scaleFactor = newScale;
   return false;
 }
@@ -158,83 +178,72 @@ function screenToWorld(x, y) {
 }
 
 // ================== FILE HANDLERS ==================
-function handleAudio(file) {
-  if (file.type !== 'audio') return;
-  let src = BASE_PATH + file.name;
-  let player = new AudioPlayerBox(file.name, random(100, 500), random(100, 400), imgOff, imgOn, src);
-  player.sound = createAudio(src);
-  player.sound.hide();
-  players.push(player);
+function handleAudioFile(file) {
+  if (file.type === 'audio') {
+    let url = URL.createObjectURL(file.file);
+    let player = new AudioPlayerBox(file.name, random(100,500), random(100,400), imgOff, imgOn, url);
+    player.sound.hide();
+    players.push(player);
+  }
 }
 
-function handleImage(file) {
-  if (file.type !== 'image') return;
-  loadImage(BASE_PATH + file.name, img => {
-    images.push(new DraggableImage(img, random(100, 800), random(100, 600), BASE_PATH + file.name));
-  });
+function handleImageFile(file) {
+  if (file.type === 'image') {
+    loadImage(file.data, img => {
+      images.push(new DraggableImage(img, random(100,800), random(100,600), file.name));
+    });
+  }
 }
 
-function handleVideo(file) {
-  if (file.type !== 'video') return;
-  let vid = createVideo(BASE_PATH + file.name, () => {
-    vid.loop();
-    vid.volume(0);
-  });
-  vid.hide();
-  videos.push(new DraggableVideo(vid, random(100, 800), random(100, 600), BASE_PATH + file.name));
+function handleVideoFile(file) {
+  if (file.type === 'video') {
+    let url = URL.createObjectURL(file.file);
+    let vid = createVideo(url, () => { vid.loop(); vid.volume(0); });
+    vid.hide();
+    videos.push(new DraggableVideo(vid, random(100,800), random(100,600), file.name, true));
+  }
 }
 
 // ================== CLASSES ==================
-// --- Audio ---
 class AudioPlayerBox {
   constructor(file, x, y, imgOff, imgOn, src) {
     this.file = file;
-    this.x = x;
-    this.y = y;
-    this.w = 180;
-    this.h = 130;
     this.src = src;
-    this.sound = null;
-    this.imgOff = imgOff;
-    this.imgOn = imgOn;
+    this.sound = createAudio(src);
+    this.sound.hide();
+    this.x = x; this.y = y;
+    this.w = 180; this.h = 130;
     this.dragging = false;
-    this.offsetX = 0;
-    this.offsetY = 0;
-    this.pressX = 0;
-    this.pressY = 0;
+    this.offsetX = 0; this.offsetY = 0;
+    this.imgOff = imgOff; this.imgOn = imgOn;
+    this.pressX = 0; this.pressY = 0;
   }
 
   display() {
-    let img = this.sound && !this.sound.elt.paused ? this.imgOn : this.imgOff;
-    image(img, this.x, this.y, this.w, this.h);
-    fill(0);
-    textAlign(CENTER, CENTER);
-    text(this.file, this.x + this.w / 2, this.y + 20);
+    let currentImg = (this.sound && !this.sound.elt.paused) ? this.imgOn : this.imgOff;
+    image(currentImg, this.x, this.y, this.w, this.h);
+    noStroke(); fill(0,0,255); textAlign(CENTER, CENTER);
+    text(this.file, this.x + this.w/2, this.y + 20);
   }
 
   isMouseOver() {
     let m = screenToWorld(mouseX, mouseY);
-    return m.x > this.x && m.x < this.x + this.w && m.y > this.y && m.y < this.y + this.h;
+    return m.x > this.x && m.x < this.x+this.w && m.y > this.y && m.y < this.y+this.h;
   }
 
   mousePressed() {
     let m = screenToWorld(mouseX, mouseY);
-    if (this.isMouseOver()) {
-      this.dragging = true;
-      this.offsetX = m.x - this.x;
-      this.offsetY = m.y - this.y;
-      this.pressX = m.x;
-      this.pressY = m.y;
-    }
+    this.dragging = true;
+    this.offsetX = m.x - this.x;
+    this.offsetY = m.y - this.y;
+    this.pressX = m.x; this.pressY = m.y;
   }
 
   mouseDragged() {
-    if (mode === MODE_PUBLIC) return;
-    if (this.dragging) {
-      let m = screenToWorld(mouseX, mouseY);
-      this.x = m.x - this.offsetX;
-      this.y = m.y - this.offsetY;
-    }
+    if (!this.dragging || mode===MODE_PUBLIC) return;
+    let m = screenToWorld(mouseX, mouseY);
+    this.x = m.x - this.offsetX;
+    this.y = m.y - this.offsetY;
   }
 
   mouseReleased() {
@@ -251,69 +260,75 @@ class AudioPlayerBox {
   }
 }
 
-// --- Draggable Image ---
+// --------- Draggable Image ---------
 class DraggableImage {
-  constructor(pic, x, y, src) {
+   constructor(pic, x, y, src) {
     this.pic = pic;
+    this.src = src;
     this.x = x;
     this.y = y;
     this.w = 200;
-    this.h = pic.height / pic.width * this.w;
+    this.h = (pic.height / pic.width) * this.w;
     this.aspect = this.h / this.w;
-    this.src = src;
     this.dragging = false;
     this.resizing = false;
-    this.toDelete = false;
     this.offsetX = 0;
     this.offsetY = 0;
+    this.toDelete = false;
   }
 
   display() {
     image(this.pic, this.x, this.y, this.w, this.h);
-    // Coins resize & delete
     noStroke();
     fill(120, 255, 255);
-    rect(this.x + this.w - 5, this.y + this.h - 5, 10, 10); // resize
-    fill(255, 0, 0);
-    rect(this.x, this.y, 10, 10); // delete
+    rect(this.x + this.w - 5, this.y + this.h - 5, 5, 5);
+    stroke(255);
+    fill(0);
+    rect(this.x, this.y, 5, 5);
   }
 
   isMouseOver() {
-    let m = screenToWorld(mouseX, mouseY);
-    return m.x > this.x && m.x < this.x + this.w && m.y > this.y && m.y < this.y + this.h;
+    let worldMouse = screenToWorld(mouseX, mouseY);
+    return worldMouse.x > this.x && worldMouse.x < this.x + this.w &&
+           worldMouse.y > this.y && worldMouse.y < this.y + this.h;
   }
 
   isOnCorner() {
-    let m = screenToWorld(mouseX, mouseY);
-    return dist(m.x, m.y, this.x + this.w, this.y + this.h) < 10;
+    let worldMouse = screenToWorld(mouseX, mouseY);
+    let cornerX = this.x + this.w;
+    let cornerY = this.y + this.h;
+    return dist(worldMouse.x, worldMouse.y, cornerX, cornerY) < 15;
   }
 
   isOnDeleteCorner() {
-    let m = screenToWorld(mouseX, mouseY);
-    return m.x > this.x && m.x < this.x + 10 && m.y > this.y && m.y < this.y + 10;
+    let worldMouse = screenToWorld(mouseX, mouseY);
+    return worldMouse.x > this.x && worldMouse.x < this.x + 10 &&
+           worldMouse.y > this.y && worldMouse.y < this.y + 10;
   }
 
   mousePressed() {
-    if (mode === MODE_PUBLIC) return;
+    
+     if (mode === MODE_PUBLIC) return;
+     
+    let worldMouse = screenToWorld(mouseX, mouseY);
     if (this.isOnDeleteCorner()) this.toDelete = true;
     else if (this.isOnCorner()) this.resizing = true;
     else if (this.isMouseOver()) {
       this.dragging = true;
-      let m = screenToWorld(mouseX, mouseY);
-      this.offsetX = m.x - this.x;
-      this.offsetY = m.y - this.y;
+      this.offsetX = worldMouse.x - this.x;
+      this.offsetY = worldMouse.y - this.y;
     }
   }
 
   mouseDragged() {
-    if (mode === MODE_PUBLIC) return;
-    let m = screenToWorld(mouseX, mouseY);
+     if (mode === MODE_PUBLIC) return;
+    let worldMouse = screenToWorld(mouseX, mouseY);
     if (this.dragging) {
-      this.x = m.x - this.offsetX;
-      this.y = m.y - this.offsetY;
+      this.x = worldMouse.x - this.offsetX;
+      this.y = worldMouse.y - this.offsetY;
     }
     if (this.resizing) {
-      let newW = m.x - this.x;
+      let newW = worldMouse.x - this.x;
       if (newW < 20) newW = 20;
       this.w = newW;
       this.h = this.w * this.aspect;
@@ -326,22 +341,28 @@ class DraggableImage {
   }
 }
 
-// --- Draggable Video ---
+// --------- Draggable Video ---------
 class DraggableVideo {
   constructor(video, x, y, src, playing = true) {
     this.video = video;
+    this.src = src;
     this.x = x;
     this.y = y;
     this.w = 320;
-    this.h = video.height / video.width * this.w;
+    this.h = (video.height / video.width) * this.w;
     this.aspect = this.h / this.w;
-    this.src = src;
     this.dragging = false;
     this.resizing = false;
+    this.offsetX = 0;
+    this.offsetY = 0;
     this.toDelete = false;
-    this.playing = playing;
-    if (this.playing) this.video.loop();
-    else this.video.pause();
+this.playing = playing;
+if (this.playing) {
+  this.video.loop();
+} else {
+  this.video.pause();
+}
+
   }
 
   display() {
@@ -349,44 +370,84 @@ class DraggableVideo {
     if (this.video.time() > 10) this.video.time(0);
     image(this.video, this.x, this.y, this.w, this.h);
 
-    // Coins resize / delete / play
     noStroke();
     fill(120, 255, 255);
-    rect(this.x + this.w - 5, this.y + this.h - 5, 10, 10); // resize
-    fill(255, 0, 0);
-    rect(this.x, this.y, 10, 10); // delete
+    rect(this.x + this.w - 5, this.y + this.h - 5, 5, 5);
+
+    stroke(255);
+    fill(0);
+    rect(this.x, this.y, 10, 10);
+
+    let btnSize = 15;
     fill(this.playing ? 'green' : 'red');
-    rect(this.x + this.w - 15, this.y, 15, 15); // play/pause
+    rect(this.x + this.w - btnSize, this.y, btnSize, btnSize);
     pop();
   }
 
   isMouseOver() {
-    let m = screenToWorld(mouseX, mouseY);
-    return m.x > this.x && m.x < this.x + this.w && m.y > this.y && m.y < this.y + this.h;
+    let worldMouse = screenToWorld(mouseX, mouseY);
+    return worldMouse.x > this.x && worldMouse.x < this.x + this.w &&
+           worldMouse.y > this.y && worldMouse.y < this.y + this.h;
   }
 
-  isOnCorner() { return this.isMouseOver() && dist(screenToWorld(mouseX, mouseY).x, screenToWorld(mouseX, mouseY).y, this.x + this.w, this.y + this.h) < 10; }
-  isOnDeleteCorner() { let m = screenToWorld(mouseX, mouseY); return m.x > this.x && m.x < this.x + 10 && m.y > this.y && m.y < this.y + 10; }
-  isOnPlayPause() { let m = screenToWorld(mouseX, mouseY); return m.x > this.x + this.w - 15 && m.x < this.x + this.w && m.y > this.y && m.y < this.y + 15; }
+  isOnCorner() {
+    let worldMouse = screenToWorld(mouseX, mouseY);
+    let cornerX = this.x + this.w;
+    let cornerY = this.y + this.h;
+    return dist(worldMouse.x, worldMouse.y, cornerX, cornerY) < 15;
+  }
+
+  isOnDeleteCorner() {
+    let worldMouse = screenToWorld(mouseX, mouseY);
+    return worldMouse.x > this.x && worldMouse.x < this.x + 10 &&
+           worldMouse.y > this.y && worldMouse.y < this.y + 10;
+  }
+
+  isOnPlayPause() {
+    let worldMouse = screenToWorld(mouseX, mouseY);
+    let btnSize = 15;
+    return worldMouse.x > this.x + this.w - btnSize && worldMouse.x < this.x + this.w &&
+           worldMouse.y > this.y && worldMouse.y < this.y + btnSize;
+  }
 
   mousePressed() {
-    if (mode === MODE_PUBLIC) return;
-    if (this.isOnDeleteCorner()) { this.video.remove(); this.toDelete = true; return; }
-    if (this.isOnCorner()) { this.resizing = true; return; }
-    if (this.isOnPlayPause()) { this.playing ? this.video.pause() : this.video.play(); this.playing = !this.playing; return; }
+     if (mode === MODE_PUBLIC) return;
+    if (this.isOnDeleteCorner()) {
+      this.video.remove();
+      this.toDelete = true;
+      return;
+    }
+    if (this.isOnCorner()) {
+      this.resizing = true;
+      return;
+    }
+    if (this.isOnPlayPause()) {
+      if (this.playing) this.video.pause();
+      else this.video.play();
+      this.playing = !this.playing;
+      return;
+    }
     if (this.isMouseOver()) {
+      let worldMouse = screenToWorld(mouseX, mouseY);
       this.dragging = true;
-      let m = screenToWorld(mouseX, mouseY);
-      this.offsetX = m.x - this.x;
-      this.offsetY = m.y - this.y;
+      this.offsetX = worldMouse.x - this.x;
+      this.offsetY = worldMouse.y - this.y;
     }
   }
 
   mouseDragged() {
-    if (mode === MODE_PUBLIC) return;
-    let m = screenToWorld(mouseX, mouseY);
-    if (this.dragging) { this.x = m.x - this.offsetX; this.y = m.y - this.offsetY; }
-    if (this.resizing) { this.w = Math.max(40, m.x - this.x); this.h = this.w * this.aspect; }
+     if (mode === MODE_PUBLIC) return;
+    let worldMouse = screenToWorld(mouseX, mouseY);
+    if (this.dragging) {
+      this.x = worldMouse.x - this.offsetX;
+      this.y = worldMouse.y - this.offsetY;
+    }
+    if (this.resizing) {
+      let newW = worldMouse.x - this.x;
+      if (newW < 40) newW = 40;
+      this.w = newW;
+      this.h = this.w * this.aspect;
+    }
   }
 
   mouseReleased() {
@@ -395,32 +456,46 @@ class DraggableVideo {
   }
 }
 
-// --- TextBlock ---
+// --------- TextBlock ---------
 class TextBlock {
-  constructor(content, type, x, y, maxWidth = null) {
+  constructor(content, type, x, y,  maxWidth = null) {
     this.content = content;
     this.type = type;
     this.x = x;
     this.y = y;
-    this.textSizeValue = type === "title" ? 42 : 18;
-    this.maxWidth = maxWidth || (type === "title" ? 300 : 400);
+    
+     
+this.textSizeValue = type === "title" ? 42 : 18;
+this.maxWidth = maxWidth || (type === "title" ? 300 : 400);
+this.bg = color(0, 0, 0, 0);
+this.txtColor = type === "title" ? color(0) : color(0, 0, 255);
+    
+    
     this.padding = 15;
     this.dragging = false;
+    this.offsetX = 0;
+    this.offsetY = 0;
     this.toDelete = false;
+
+  
   }
 
   display() {
     push();
     textSize(this.textSizeValue);
     textAlign(LEFT, TOP);
+
     let h = this.getTextHeight();
     noStroke();
-    fill(0, 0, 0, 0);
+    fill(this.bg);
     rect(this.x, this.y, this.maxWidth + this.padding * 2, h + this.padding * 2);
-    fill(this.type === "title" ? 0 : color(0,0,255));
+
+    fill(this.txtColor);
     text(this.content, this.x + this.padding, this.y + this.padding, this.maxWidth);
-    fill(255,0,0);
-    rect(this.x, this.y, 10, 10); // delete
+
+    stroke(255);
+    fill(0);
+    rect(this.x, this.y, 10, 10);
     pop();
   }
 
@@ -431,89 +506,94 @@ class TextBlock {
     let line = "";
     let y = 0;
     let lineHeight = this.textSizeValue * 1.4;
+
     for (let w of words) {
       let test = line + w + " ";
-      if (textWidth(test) > this.maxWidth) { line = w + " "; y += lineHeight; } else line = test;
+      if (textWidth(test) > this.maxWidth) {
+        line = w + " ";
+        y += lineHeight;
+      } else line = test;
     }
     pop();
     return y + lineHeight;
   }
 
   isMouseOver() {
-    let m = screenToWorld(mouseX, mouseY);
-    return m.x > this.x && m.x < this.x + this.maxWidth + this.padding * 2 &&
-           m.y > this.y && m.y < this.y + this.getTextHeight() + this.padding * 2;
+    let worldMouse = screenToWorld(mouseX, mouseY);
+    let h = this.getTextHeight() + this.padding * 2;
+    return worldMouse.x > this.x && worldMouse.x < this.x + this.maxWidth + this.padding * 2 &&
+           worldMouse.y > this.y && worldMouse.y < this.y + h;
   }
 
   mousePressed() {
-    if (mode === MODE_PUBLIC) return;
-    let m = screenToWorld(mouseX, mouseY);
-    if (m.x > this.x && m.x < this.x + 10 && m.y > this.y && m.y < this.y + 10) { this.toDelete = true; return; }
+     if (mode === MODE_PUBLIC) return;
+    let worldMouse = screenToWorld(mouseX, mouseY);
+    if (worldMouse.x > this.x && worldMouse.x < this.x + 10 &&
+        worldMouse.y > this.y && worldMouse.y < this.y + 10) {
+      this.toDelete = true;
+      return;
+    }
     this.dragging = true;
-    this.offsetX = m.x - this.x;
-    this.offsetY = m.y - this.y;
+    this.offsetX = worldMouse.x - this.x;
+    this.offsetY = worldMouse.y - this.y;
   }
 
   mouseDragged() {
-    if (mode === MODE_PUBLIC) return;
+     if (mode === MODE_PUBLIC) return;
     if (this.dragging) {
-      let m = screenToWorld(mouseX, mouseY);
-      this.x = m.x - this.offsetX;
-      this.y = m.y - this.offsetY;
+      let worldMouse = screenToWorld(mouseX, mouseY);
+      this.x = worldMouse.x - this.offsetX;
+      this.y = worldMouse.y - this.offsetY;
     }
   }
 
-  mouseReleased() { this.dragging = false; }
+  mouseReleased() {
+    this.dragging = false;
+  }
 }
 
-// ================== SAVE / LOAD ==================
 function exportLayout() {
   const data = {
     canvas: { zoom: scaleFactor, offsetX, offsetY },
-    images: images.map(i => ({ src: i.src, x: i.x, y: i.y, w: i.w, h: i.h })),
-    videos: videos.map(v => ({ src: v.src, x: v.x, y: v.y, w: v.w, h: v.h, playing: v.playing })),
-    texts: texts.map(t => ({ content: t.content, type: t.type, x: t.x, y: t.y, maxWidth: t.maxWidth, fontSize: t.textSizeValue })),
-    players: players.map(p => ({ src: p.src, x: p.x, y: p.y, w: p.w, h: p.h }))
+    images: images.map(i => ({ src:i.src,x:i.x,y:i.y,w:i.w,h:i.h })),
+    videos: videos.map(v => ({ src:v.src,x:v.x,y:v.y,w:v.w,h:v.h,playing:v.playing })),
+    texts: texts.map(t => ({ content:t.content,type:t.type,x:t.x,y:t.y,maxWidth:t.maxWidth,fontSize:t.textSizeValue })),
+    players: players.map(p => ({ src:p.src,x:p.x,y:p.y,w:p.w,h:p.h }))
   };
-  saveJSON(data, "layout.json");
+  saveJSON(data,"layout.json");
 }
 
 function loadLayout(data) {
-  // --- Images ---
-  if (data.images) data.images.forEach(i => {
-    loadImage(i.src, img => {
-      let d = new DraggableImage(img, i.x, i.y, i.src);
-      d.w = i.w; d.h = i.h;
-      images.push(d);
+  if (data.images) data.images.forEach(img => {
+    loadImage(img.src, loaded => {
+      let i = new DraggableImage(loaded,img.x,img.y,img.src);
+      i.w = img.w; i.h = img.h; images.push(i);
     });
   });
 
-  // --- Videos ---
   if (data.videos) data.videos.forEach(v => {
-    let vid = createVideo(v.src, () => { if (v.playing) vid.loop(); else vid.pause(); vid.volume(0); });
+    let vid = createVideo(v.src, () => { if(v.playing) vid.loop(); else vid.pause(); vid.volume(0); });
     vid.hide();
-    let d = new DraggableVideo(vid, v.x, v.y, v.src, v.playing ?? true);
-    d.w = v.w; d.h = v.h;
-    videos.push(d);
+    let dv = new DraggableVideo(vid,v.x,v.y,v.src,v.playing??true);
+    dv.w = v.w; dv.h = v.h; videos.push(dv);
   });
 
-  // --- Textes ---
   if (data.texts) data.texts.forEach(t => {
-    let tb = new TextBlock(t.content, t.type, t.x, t.y);
-    if (t.maxWidth) tb.maxWidth = t.maxWidth;
-    if (t.fontSize) tb.textSizeValue = t.fontSize;
+    let tb = new TextBlock(t.content,t.type,t.x,t.y);
+    if(t.maxWidth) tb.maxWidth = t.maxWidth;
+    if(t.fontSize) tb.textSizeValue = t.fontSize;
     texts.push(tb);
   });
 
-  // --- Players ---
-  if (data.players) data.players.forEach(p => {
-    let player = new AudioPlayerBox(p.src.split("/").pop(), p.x, p.y, imgOff, imgOn, p.src);
-    player.sound = createAudio(p.src);
-    player.sound.hide();
-    player.w = p.w; player.h = p.h;
-    players.push(player);
+  if (data.players) data.players.forEach(a => {
+    let fileName = a.src.split("/").pop();
+    let p = new AudioPlayerBox(fileName,a.x,a.y,imgOff,imgOn,a.src);
+    p.w = a.w ?? p.w; p.h = a.h ?? p.h; players.push(p);
   });
 
-  // --- Canvas ---
-  if (data.canvas) { scaleFactor = data.canvas.zoom ?? 1; offsetX = data.canvas.offsetX ?? 0; offsetY = data.canvas.offsetY ?? 0; }
+  if (data.canvas) {
+    scaleFactor = data.canvas.zoom ?? 1;
+    offsetX = data.canvas.offsetX ?? 0;
+    offsetY = data.canvas.offsetY ?? 0;
+  }
 }
