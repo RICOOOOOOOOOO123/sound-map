@@ -4,63 +4,64 @@
     "offsetY": 0,
     "zoom": 1
   },
-
   "images": [
     {
-      "src": "/uploads/img1.jpg",
       "src": "uploads/img1.jpg",
       "x": 100,
       "y": 150,
-      "w": 200
+      "w": 200,
+      "h": 150
     },
     {
-      "src": "/uploads/img2.png",
       "src": "uploads/img2.png",
       "x": 500,
       "y": 300,
-      "w": 250
+      "w": 250,
+      "h": 200
     }
   ],
-
   "videos": [
     {
-      "src": "/uploads/video1.mp4",
       "src": "uploads/video1.mp4",
       "x": 300,
       "y": 400,
-      "w": 320
       "w": 320,
+      "h": 180,
       "playing": true
     }
   ],
-
   "texts": [
     {
       "content": "Bienvenue sur mon mur interactif !",
       "type": "title",
       "x": 50,
-      "y": 50
+      "y": 50,
+      "maxWidth": 300,
+      "fontSize": 42
     },
     {
       "content": "Voici un paragraphe explicatif sur le projet.",
       "type": "body",
       "x": 50,
-      "y": 120
+      "y": 120,
+      "maxWidth": 400,
+      "fontSize": 18
     }
   ],
-
   "players": [
     {
-      "src": "/uploads/son1.mp3",
       "src": "uploads/son1.mp3",
       "x": 200,
-      "y": 600
+      "y": 600,
+      "w": 180,
+      "h": 130
     },
     {
-      "src": "/uploads/son2.mp3",
       "src": "uploads/son2.mp3",
       "x": 500,
-      "y": 600
+      "y": 600,
+      "w": 180,
+      "h": 130
     }
   ]
 }
