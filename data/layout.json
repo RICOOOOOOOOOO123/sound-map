@@ -1,11 +1,9 @@
-
 {
   "canvas": {
-    "offsetX": 0,
-    "offsetY": 0,
-    "zoom": 1
+    "zoom": 0.6512990484330976,
+    "offsetX": 421.92815139595166,
+    "offsetY": 157.9615310598066
   },
-
   "images": [
     {
       "src": "uploads/img1.jpg",
@@ -18,44 +16,95 @@
       "x": 500,
       "y": 300,
       "w": 250
+    },
+    {
+      "src": "img1.jpg",
+      "x": 845.2362203415216,
+      "y": 432.7180544886731,
+      "w": 204.76377965847837,
+      "h": 218.84561794389796
+    },
+    {
+      "src": "img3.png",
+      "x": 1260.1479894076667,
+      "y": 233.31641770745836,
+      "w": 200,
+      "h": 158.02997858672376
     }
   ],
-
   "videos": [
     {
       "src": "uploads/video1.mp4",
       "x": 300,
       "y": 400,
       "w": 320,
+      "playing": false
+    },
+    {
+      "src": "video2.mp4",
+      "x": 258.1692092178247,
+      "y": -70.24727721804202,
+      "w": 320,
+      "h": 160,
       "playing": true
     }
   ],
-
   "texts": [
     {
       "content": "Bienvenue sur mon mur interactif !",
       "type": "title",
-      "x": 50,
-      "y": 50
+      "x": 659,
+      "y": 86,
+      "maxWidth": 300,
+      "fontSize": 42
     },
     {
       "content": "Voici un paragraphe explicatif sur le projet.",
       "type": "body",
-      "x": 50,
-      "y": 120
+      "x": 1032.6515201269203,
+      "y": -55.034802022607664,
+      "maxWidth": 400,
+      "fontSize": 18
+    },
+    {
+      "content": "salut",
+      "type": "title",
+      "x": 1017,
+      "y": 227,
+      "maxWidth": 300,
+      "fontSize": 42
+    },
+    {
+      "content": "salut",
+      "type": "body",
+      "x": 1021,
+      "y": 284,
+      "maxWidth": 400,
+      "fontSize": 18
     }
   ],
-
   "players": [
     {
       "src": "uploads/son1.mp3",
-      "x": 200,
-      "y": 600
+      "x": 1092,
+      "y": 363,
+      "w": 180,
+      "h": 130
     },
     {
       "src": "uploads/son2.mp3",
-      "x": 500,
-      "y": 600
+      "x": 1266,
+      "y": 110,
+      "w": 180,
+      "h": 130
+    },
+    {
+      "src": "blob:https://lesassoiffees.vercel.app/54648b0c-c855-46a1-867e-733c7496cd34",
+      "x": 1070.280899155657,
+      "y": 56.11896725730767,
+      "w": 180,
+      "h": 130
     }
   ]
 }
+
