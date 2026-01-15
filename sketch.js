@@ -4,6 +4,8 @@ let images = [];
 let videos = [];
 let texts = [];
 
+let mediaFiles = [];
+
 let fileInput, fileInputImage, fileInputVideo;
 let fileInputTextTitle, fileInputTextBody;
 let imgOff, imgOn;
@@ -22,6 +24,10 @@ let savedLayout; // layout chargé depuis JSON
 function preload() {
   imgOff = loadImage("robinette.png");
   imgOn = loadImage("robinette2.png");
+
+    loadJSON("uploads/manifest.json", data => {
+  mediaFiles = data.files || [];
+});
 
   savedLayout = loadJSON("data/layout.json", layout => {
     loadLayout(layout);
@@ -43,13 +49,13 @@ function setup() {
       .position(10, 320)
       .mousePressed(exportLayout);
 
-    fileInput = createFileInput(handleAudioFile);
+  
     fileInput.position(10, 20);
 
-    fileInputImage = createFileInput(handleImageFile);
+
     fileInputImage.position(10, 70);
 
-    fileInputVideo = createFileInput(handleVideoFile);
+
     fileInputVideo.position(10, 180);
 
     fileInputTextTitle = createButton("Ajouter un TITRE");
@@ -78,6 +84,8 @@ function draw() {
   translate(offsetX, offsetY);
   scale(scaleFactor);
 
+  if (mode === MODE_ADMIN) drawMediaManager();
+
   // Images
   for (let img of images) img.display();
   images = images.filter(img => !img.toDelete);
@@ -101,6 +109,95 @@ function draw() {
   textAlign(LEFT, TOP);
   text("*Appuie sur espace pour arrêter tous les sons, shift+drag pour déplacer le canvas", 10, 120);
 }
+//========================filetype============================
+
+function getFileType(filename) {
+  let ext = filename.split(".").pop().toLowerCase();
+
+  if (["jpg","jpeg","png","gif","webp"].includes(ext)) return "image";
+  if (["mp4","webm","ogg"].includes(ext)) return "video";
+  if (["mp3","wav","ogg"].includes(ext)) return "audio";
+
+  return "unknown";
+}
+
+
+//======================drawmediamanager=====================
+
+
+function drawMediaManager() {
+  let x = 20;
+  let y = 360;
+
+  fill(0);
+  text("MEDIA MANAGER", x, y - 20);
+
+  for (let file of mediaFiles) {
+    let type = getFileType(file);
+    let label =
+      type === "image" ? "🖼 " :
+      type === "video" ? "🎬 " :
+      type === "audio" ? "🔊 " : "❓ ";
+
+    if (button(x, y, 160, 20, label + file)) {
+      importMedia(file, type);
+    }
+    y += 25;
+  }
+}
+//======================importmedia================
+function importMedia(file, type) {
+  let path = "uploads/" + file;
+
+  if (type === "image") {
+    loadImage(path, img => {
+      images.push(new DraggableImage(img, 300, 200, path));
+    });
+  }
+
+  if (type === "video") {
+    let v = createVideo(path, () => {
+      v.loop();
+      v.volume(0);
+    });
+    v.hide();
+    videos.push(new DraggableVideo(v, 300, 300, path));
+  }
+
+  if (type === "audio") {
+    players.push(
+      new AudioPlayerBox(
+        file,
+        300,
+        400,
+        imgOff,
+        imgOn,
+        path
+      )
+    );
+  }
+}
+
+
+
+//======================helper=====================
+
+function button(x, y, w, h, label) {
+  if (
+    mouseX > x && mouseX < x + w &&
+    mouseY > y && mouseY < y + h
+  ) {
+    fill(200);
+    if (mouseIsPressed) return true;
+  } else fill(240);
+
+  rect(x, y, w, h);
+  fill(0);
+  textAlign(LEFT, CENTER);
+  text(label, x + 5, y + h / 2);
+  return false;
+}
+
 
 // ================== MOUSE INTERACTIONS ==================
 let activeObject = null;
