@@ -11,7 +11,7 @@ let offsetX = 0;
 let offsetY = 0;
 let scaleFactor = 1;
 
-const BASE_PATH = "/uploads/";
+const BASE_PATH = "uploads/";
 
 const MODE_ADMIN = "admin";
 const MODE_PUBLIC = "public";
