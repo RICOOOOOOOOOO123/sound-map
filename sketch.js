@@ -22,7 +22,7 @@ function preload() {
   imgOff = loadImage("robinette.png");
   imgOn = loadImage("robinette2.png");
 
-  savedLayout = loadJSON("layout.json", layout => {
+  savedLayout = loadJSON("data/layout.json", layout => {
     loadLayout(layout);
     console.log("Layout chargé et appliqué");
   });
