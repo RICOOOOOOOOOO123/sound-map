@@ -28,9 +28,10 @@ function preload() {
 function setup() {
   createCanvas(1920, 1080);
 
-  if (window.location.pathname.includes("admin")) {
-    mode = MODE_ADMIN;
-  }
+const params = new URLSearchParams(window.location.search);
+if (params.get("admin") === "1") {
+  mode = MODE_ADMIN;
+}
 
   if (mode === MODE_ADMIN) {
     createButton("💾 Sauvegarder layout")
