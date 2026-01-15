@@ -23,7 +23,7 @@ let savedLayout; // layout initial
 function preload() {
   imgOff = loadImage("robinette.png");    // image par défaut
   imgOn = loadImage("robinette2.png");    // image quand lecture
-  savedLayout = loadJSON(BASE_PATH + "data/layout.json", layout => {
+  savedLayout = loadJSON("data/layout.json", layout => {
     loadLayout(layout);
     console.log("layout chargé et appliqué");
   });
