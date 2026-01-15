@@ -7,13 +7,13 @@
   },
   "images": [
     {
-      "src": "/uploads/img1.jpg",
+      "src": "sound-map/uploads/img1.jpg",
       "x": 100,
       "y": 150,
       "w": 200
     },
     {
-      "src": "/uploads/img2.png",
+      "src": "sound-map/uploads/img2.png",
       "x": 500,
       "y": 300,
       "w": 250
@@ -21,7 +21,7 @@
   ],
   "videos": [
     {
-      "src": "/uploads/video1.mp4",
+      "src": "sound-map/uploads/video1.mp4",
       "x": 300,
       "y": 400,
       "w": 320
@@ -43,12 +43,12 @@
   ],
   "players": [
     {
-      "src": "/uploads/son1.mp3",
+      "src": "sound-map/uploads/son1.mp3",
       "x": 200,
       "y": 600
     },
     {
-      "src": "/uploads/son2.mp3",
+      "src": "sound-map/uploads/son2.mp3",
       "x": 500,
       "y": 600
     }
