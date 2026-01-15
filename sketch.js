@@ -20,12 +20,8 @@ let mode = MODE_PUBLIC;
 // ================== PRELOAD ==================
 function preload() {
   imgOff = loadImage("robinette.png");
-  imgOn  = loadImage("robinette2.png");
-
-  loadJSON("vercel.json", data => {
-    loadLayout(data);
-    console.log("Layout chargé");
-  });
+  imgOn = loadImage("robinette2.png");
+  savedLayout = loadJSON("data/layout.json");
 }
 
 // ================== SETUP ==================
@@ -64,11 +60,20 @@ function setup() {
         if (t) texts.push(new TextBlock(t, "body", 300, 300));
       });
   }
+  if (savedLayout) {
+  loadLayout(savedLayout);
+  console.log("layout chargé");
+}
+
 }
 
 // ================== DRAW ==================
 function draw() {
   background(230, 255, 255);
+  
+  fill(0);
+textSize(32);
+text("p5 fonctionne", 50, 50);
 
   push();
   translate(offsetX, offsetY);
