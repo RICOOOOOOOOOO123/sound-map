@@ -563,26 +563,48 @@ function exportLayout() {
 }
 
 function loadLayout(data) {
-  if (data.images) data.images.forEach(img => {
+  if (data.images) {
+  data.images.forEach(img => {
     loadImage(img.src, loaded => {
-      let i = new DraggableImage(loaded,img.x,img.y,img.src);
-      i.w = img.w; i.h = img.h; images.push(i);
+      let i = new DraggableImage(
+        loaded,
+        img.x,
+        img.y,
+        img.src // stocker le src
+      );
+      // Restaurer largeur et hauteur, recalculer l’aspect
+      i.w = img.w;
+      i.h = img.h;
+      i.aspect = i.h / i.w;
+      images.push(i);
     });
   });
+}
 
-  if (data.videos) data.videos.forEach(v => {
-    let vid = createVideo(v.src, () => { if(v.playing) vid.loop(); else vid.pause(); vid.volume(0); });
+ if (data.videos) {
+  data.videos.forEach(v => {
+    let vid = createVideo(v.src, () => {
+      if (v.playing) vid.loop();
+      else vid.pause();
+      vid.volume(0);
+    });
     vid.hide();
-    let dv = new DraggableVideo(vid,v.x,v.y,v.src,v.playing??true);
-    dv.w = v.w; dv.h = v.h; videos.push(dv);
-  });
 
-  if (data.texts) data.texts.forEach(t => {
-    let tb = new TextBlock(t.content,t.type,t.x,t.y);
-    if(t.maxWidth) tb.maxWidth = t.maxWidth;
-    if(t.fontSize) tb.textSizeValue = t.fontSize;
+    let dv = new DraggableVideo(vid, v.x, v.y, v.src, v.playing);
+    dv.w = v.w;
+    dv.h = v.h;
+    dv.aspect = dv.h / dv.w;
+    videos.push(dv);
+  });
+}
+if (data.texts) {
+  data.texts.forEach(t => {
+    let tb = new TextBlock(t.content, t.type, t.x, t.y);
+    tb.maxWidth = t.maxWidth ?? tb.maxWidth;
+    tb.textSizeValue = t.fontSize ?? tb.textSizeValue;
     texts.push(tb);
   });
+}
 
   if (data.players) data.players.forEach(a => {
     let fileName = a.src.split("/").pop();
