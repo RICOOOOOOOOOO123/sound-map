@@ -1,3 +1,209 @@
+// ================== GLOBAL ==================
+let players = [];
+let images = [];
+let videos = [];
+let texts = [];
+
+let fileInputAudio, fileInputImage, fileInputVideo;
+let imgOff, imgOn;
+
+let offsetX = 0;
+let offsetY = 0;
+let scaleFactor = 1;
+
+const BASE_PATH = "uploads/";
+
+const MODE_ADMIN = "admin";
+const MODE_PUBLIC = "public";
+let mode = MODE_PUBLIC;
+
+let savedLayout; // layout initial
+
+// ================== PRELOAD ==================
+function preload() {
+  imgOff = loadImage("robinette.png");    // image par défaut
+  imgOn = loadImage("robinette2.png");    // image quand lecture
+  savedLayout = loadJSON(BASE_PATH + "data/layout.json", layout => {
+    loadLayout(layout);
+    console.log("layout chargé et appliqué");
+  });
+}
+
+// ================== SETUP ==================
+function setup() {
+  createCanvas(1920, 1080);
+
+  if (window.location.pathname.includes("admin") || new URLSearchParams(window.location.search).get("admin") === "1") {
+    mode = MODE_ADMIN;
+  }
+
+  if (mode === MODE_ADMIN) {
+    // --- Bouton sauvegarde layout ---
+    let saveBtn = createButton("💾 Sauvegarder layout");
+    saveBtn.position(10, 320);
+    saveBtn.mousePressed(exportLayout);
+
+    // --- Import audio ---
+    fileInputAudio = createFileInput(handleAudio);
+    fileInputAudio.position(10, 20);
+
+    // --- Import image ---
+    fileInputImage = createFileInput(handleImage);
+    fileInputImage.position(10, 70);
+
+    // --- Import vidéo ---
+    fileInputVideo = createFileInput(handleVideo);
+    fileInputVideo.position(10, 180);
+
+    // --- Ajouter texte titre ---
+    let btnTitle = createButton("Ajouter TITRE");
+    btnTitle.position(10, 250);
+    btnTitle.mousePressed(() => {
+      let content = prompt("Texte du titre ?");
+      if (content) texts.push(new TextBlock(content, "title", 300, 200));
+    });
+
+    // --- Ajouter texte normal ---
+    let btnBody = createButton("Ajouter TEXTE");
+    btnBody.position(10, 280);
+    btnBody.mousePressed(() => {
+      let content = prompt("Texte du paragraphe ?");
+      if (content) texts.push(new TextBlock(content, "body", 300, 300));
+    });
+  }
+}
+
+// ================== DRAW ==================
+function draw() {
+  background(230, 255, 255);
+
+  push();
+  translate(offsetX, offsetY);
+  scale(scaleFactor);
+
+  // --- Images ---
+  for (let img of images) img.display();
+  images = images.filter(img => !img.toDelete);
+
+  // --- Textes ---
+  for (let t of texts) t.display();
+  texts = texts.filter(t => !t.toDelete);
+
+  // --- Audio ---
+  for (let p of players) p.display();
+
+  // --- Vidéos ---
+  for (let v of videos) v.display();
+  videos = videos.filter(v => !v.toDelete);
+
+  pop();
+
+  // --- Info UI ---
+  noStroke();
+  fill(50);
+  textAlign(LEFT, TOP);
+  text("* SHIFT + drag pour déplacer le canvas", 10, 120);
+  if (mode === MODE_ADMIN) {
+    text("Importer un son, une image ou une vidéo", 10, 150);
+  }
+}
+
+// ================== MOUSE INTERACTIONS ==================
+let activeObject = null;
+
+function mousePressed() {
+  activeObject = null;
+
+  const objects = [...players, ...videos, ...texts, ...images].reverse();
+  for (let obj of objects) {
+    if (obj.isMouseOver() || obj.isOnCorner() || obj.isOnPlayPause ? obj.isOnPlayPause() : false) {
+      activeObject = obj;
+      if (obj.mousePressed) obj.mousePressed();
+      return;
+    }
+  }
+}
+
+function mouseDragged() {
+  if (activeObject) activeObject.mouseDragged();
+  else if (mouseIsPressed && keyIsDown(SHIFT)) {
+    offsetX += movedX;
+    offsetY += movedY;
+  }
+}
+
+function mouseReleased() {
+  if (activeObject) activeObject.mouseReleased();
+  activeObject = null;
+}
+
+// ================== MOUSE WHEEL ZOOM ==================
+function mouseWheel(event) {
+  let zoomSpeed = 0.001;
+  let zoom = 1 - event.delta * zoomSpeed;
+
+  let newScale = constrain(scaleFactor * zoom, 0.2, 5);
+
+  // Zoom centré sur la souris
+  let worldMouse = screenToWorld(mouseX, mouseY);
+  offsetX = mouseX - worldMouse.x * newScale;
+  offsetY = mouseY - worldMouse.y * newScale;
+
+  scaleFactor = newScale;
+  return false;
+}
+
+function screenToWorld(x, y) {
+  return { x: (x - offsetX) / scaleFactor, y: (y - offsetY) / scaleFactor };
+}
+
+// ================== FILE HANDLERS ==================
+function handleAudio(file) {
+  if (file.type !== 'audio') return;
+  let src = BASE_PATH + file.name;
+  let player = new AudioPlayerBox(file.name, random(100, 500), random(100, 400), imgOff, imgOn, src);
+  player.sound = createAudio(src);
+  player.sound.hide();
+  players.push(player);
+}
+
+function handleImage(file) {
+  if (file.type !== 'image') return;
+  loadImage(BASE_PATH + file.name, img => {
+    images.push(new DraggableImage(img, random(100, 800), random(100, 600), BASE_PATH + file.name));
+  });
+}
+
+function handleVideo(file) {
+  if (file.type !== 'video') return;
+  let vid = createVideo(BASE_PATH + file.name, () => {
+    vid.loop();
+    vid.volume(0);
+  });
+  vid.hide();
+  videos.push(new DraggableVideo(vid, random(100, 800), random(100, 600), BASE_PATH + file.name));
+}
+
+// ================== CLASSES ==================
+// --- Audio ---
+class AudioPlayerBox {
+  constructor(file, x, y, imgOff, imgOn, src) {
+    this.file = file;
+    this.x = x;
+    this.y = y;
+    this.w = 180;
+    this.h = 130;
+    this.src = src;
+    this.sound = null;
+    this.imgOff = imgOff;
+    this.imgOn = imgOn;
+    this.dragging = false;
+    this.offsetX = 0;
+    this.offsetY = 0;
+    this.pressX = 0;
+    this.pressY = 0;
+  }
+
   display() {
     let img = this.sound && !this.sound.elt.paused ? this.imgOn : this.imgOff;
     image(img, this.x, this.y, this.w, this.h);
