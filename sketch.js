@@ -106,7 +106,7 @@ function draw() {
   translate(offsetX, offsetY);
   scale(scaleFactor);
 
-  if (mode === MODE_ADMIN) drawMediaManager();
+
 
   // Images
   for (let img of images) img.display();
