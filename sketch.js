@@ -111,7 +111,8 @@ function draw() {
   texts = texts.filter(t => !t.toDelete);
 
   // Audio
-  for (let p of players) p.display();
+for (let p of players) p.display();
+players = players.filter(p => !p.toDelete);
 
   // Vidéos
   for (let v of videos) v.display();
@@ -326,22 +327,56 @@ class AudioPlayerBox {
   display() {
     let currentImg = (this.sound && !this.sound.elt.paused) ? this.imgOn : this.imgOff;
     image(currentImg, this.x, this.y, this.w, this.h);
+
+    if (mode === MODE_ADMIN) {
     noStroke(); fill(0,0,255); textAlign(CENTER, CENTER);
     text(this.file, this.x + this.w/2, this.y + 20);
+
+    stroke(255);
+    fill(0);
+    rect(this.x, this.y, 10, 10);
   }
+  }
+
+  
 
   isMouseOver() {
     let m = screenToWorld(mouseX, mouseY);
     return m.x > this.x && m.x < this.x+this.w && m.y > this.y && m.y < this.y+this.h;
   }
 
-  mousePressed() {
-    let m = screenToWorld(mouseX, mouseY);
-    this.dragging = true;
-    this.offsetX = m.x - this.x;
-    this.offsetY = m.y - this.y;
-    this.pressX = m.x; this.pressY = m.y;
+  isOnDeleteCorner() {
+  let m = screenToWorld(mouseX, mouseY);
+  return (
+    m.x > this.x &&
+    m.x < this.x + 10 &&
+    m.y > this.y &&
+    m.y < this.y + 10
+  );
+}
+
+
+mousePressed() {
+  if (mode === MODE_PUBLIC) return;
+
+  let m = screenToWorld(mouseX, mouseY);
+
+  // suppression
+  if (this.isOnDeleteCorner()) {
+    this.sound.stop();
+    this.sound.remove();
+    this.toDelete = true;
+    return;
   }
+
+  // drag
+  this.dragging = true;
+  this.offsetX = m.x - this.x;
+  this.offsetY = m.y - this.y;
+  this.pressX = m.x;
+  this.pressY = m.y;
+}
+
 
   mouseDragged() {
     if (!this.dragging || mode===MODE_PUBLIC) return;
