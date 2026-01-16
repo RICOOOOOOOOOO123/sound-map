@@ -153,14 +153,26 @@ function importMedia(file, type) {
     });
   }
 
-  if (type === "video") {
-    let v = createVideo(path, () => {
-      v.loop();
-      v.volume(0);
-    });
-    v.hide();
-    videos.push(new DraggableVideo(v, 300, 300, path));
-  }
+if (type === "video") {
+  let v = createVideo(path);
+  v.hide();
+  v.volume(0);
+
+  v.elt.onloadedmetadata = () => {
+    let targetW = 320; // largeur par défaut
+    let ratio = v.elt.videoHeight / v.elt.videoWidth;
+    let targetH = targetW * ratio;
+
+    let dv = new DraggableVideo(v, 300, 300, path);
+    dv.w = targetW;
+    dv.h = targetH;
+    dv.aspect = ratio;
+
+    videos.push(dv);
+    v.loop();
+  };
+}
+
 
   if (type === "audio") {
     players.push(
@@ -485,26 +497,27 @@ class DraggableImage {
 
 // --------- Draggable Video ---------
 class DraggableVideo {
-  constructor(video, x, y, src, playing = true) {
-    this.video = video;
-    this.src = src;
-    this.x = x;
-    this.y = y;
-    this.w = 320;
-    this.h = (video.height / video.width) * this.w;
-    this.aspect = this.h / this.w;
-    this.dragging = false;
-    this.resizing = false;
-    this.offsetX = 0;
-    this.offsetY = 0;
-    this.toDelete = false;
-this.playing = playing;
-this.video.volume(0); // obligatoire navigateur
-this.video.loop();    // force le chargement visuel
-this.playing = true;
+constructor(video, x, y, src, playing = true) {
+  this.video = video;
+  this.src = src;
+  this.x = x;
+  this.y = y;
 
+  this.w = 320;
+  this.h = 180;
+  this.aspect = this.h / this.w;
 
-  }
+  this.dragging = false;
+  this.resizing = false;
+  this.offsetX = 0;
+  this.offsetY = 0;
+  this.toDelete = false;
+
+  this.playing = playing;
+  if (this.playing) video.loop();
+  else video.pause();
+}
+
 
   display() {
     push();
