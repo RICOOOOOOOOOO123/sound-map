@@ -43,6 +43,28 @@ function setup() {
   const params = new URLSearchParams(window.location.search);
   if (params.get("admin") === "1") mode = MODE_ADMIN;
 
+  if (mode === MODE_ADMIN) {
+  loadJSON("uploads/manifest.json", data => {
+    let y = 360;
+
+    data.files.forEach(file => {
+      let type = getFileType(file);
+
+      let label =
+        type === "image" ? "🖼 " :
+        type === "video" ? "🎬 " :
+        type === "audio" ? "🔊 " : "❓ ";
+
+      createButton(label + file)
+        .position(10, y)
+        .mousePressed(() => importMedia(file, type));
+
+      y += 28;
+    });
+  });
+}
+
+
   // --------- Boutons Admin ---------
   if (mode === MODE_ADMIN) {
     createButton("💾 Sauvegarder layout")
@@ -122,29 +144,10 @@ function getFileType(filename) {
 }
 
 
-//======================drawmediamanager=====================
 
 
-function drawMediaManager() {
-  let x = 20;
-  let y = 360;
 
-  fill(0);
-  text("MEDIA MANAGER", x, y - 20);
 
-  for (let file of mediaFiles) {
-    let type = getFileType(file);
-    let label =
-      type === "image" ? "🖼 " :
-      type === "video" ? "🎬 " :
-      type === "audio" ? "🔊 " : "❓ ";
-
-    if (button(x, y, 160, 20, label + file)) {
-      importMedia(file, type);
-    }
-    y += 25;
-  }
-}
 //======================importmedia================
 function importMedia(file, type) {
   let path = "uploads/" + file;
