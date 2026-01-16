@@ -176,8 +176,7 @@ if (type === "video") {
       videos.push(dv);
     };
   }
-}
-}
+
 
 
 
