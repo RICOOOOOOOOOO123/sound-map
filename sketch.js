@@ -6,7 +6,7 @@ let texts = [];
 
 let mediaFiles = [];
 
-let fileInput, fileInputImage, fileInputVideo;
+
 let fileInputTextTitle, fileInputTextBody;
 let imgOff, imgOn;
 
@@ -72,13 +72,7 @@ function setup() {
       .mousePressed(exportLayout);
 
   
-    fileInput.position(10, 20);
-
-
-    fileInputImage.position(10, 70);
-
-
-    fileInputVideo.position(10, 180);
+  
 
     fileInputTextTitle = createButton("Ajouter un TITRE");
     fileInputTextTitle.position(10, 250);
