@@ -106,17 +106,19 @@ function draw() {
   for (let img of images) img.display();
   images = images.filter(img => !img.toDelete);
 
+  // Vidéos
+  for (let v of videos) v.display();
+  videos = videos.filter(v => !v.toDelete);
+
+    // Audio
+for (let p of players) p.display();
+players = players.filter(p => !p.toDelete);
+
   // Textes
   for (let t of texts) t.display();
   texts = texts.filter(t => !t.toDelete);
 
-  // Audio
-for (let p of players) p.display();
-players = players.filter(p => !p.toDelete);
 
-  // Vidéos
-  for (let v of videos) v.display();
-  videos = videos.filter(v => !v.toDelete);
 
   pop();
 
