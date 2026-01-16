@@ -351,6 +351,23 @@ function handleVideoFile(file) {
   }
 }
 
+function bringImageForward(img) {
+  let i = images.indexOf(img);
+  if (i < images.length - 1) {
+    images.splice(i, 1);
+    images.splice(i + 1, 0, img);
+  }
+}
+
+function sendImageBackward(img) {
+  let i = images.indexOf(img);
+  if (i > 0) {
+    images.splice(i, 1);
+    images.splice(i - 1, 0, img);
+  }
+}
+
+
 // ================== CLASSES ==================
 class AudioPlayerBox {
   constructor(file, x, y, imgOff, imgOn, src) {
@@ -458,18 +475,62 @@ class DraggableImage {
     this.toDelete = false;
   }
 
-  display() {
-    image(this.pic, this.x, this.y, this.w, this.h);
+ display() {
+  image(this.pic, this.x, this.y, this.w, this.h);
 
-    if (mode === MODE_ADMIN) {
+  if (mode === MODE_ADMIN) {
+    // resize (coin bas droit)
     noStroke();
     fill(120, 255, 255);
     rect(this.x + this.w - 5, this.y + this.h - 5, 5, 5);
+
+    // delete (coin haut gauche)
     stroke(255);
     fill(0);
     rect(this.x, this.y, 5, 5);
+
+    // ===== boutons Z-ORDER =====
+    let btnSize = 12;
+    let gap = 2;
+
+    // bouton reculer
+    fill(0);
+    rect(this.x, this.y + this.h - btnSize * 2 - gap, btnSize, btnSize);
+    fill(255);
+    textAlign(CENTER, CENTER);
+    text("↓", this.x + btnSize / 2, this.y + this.h - btnSize * 1.5 - gap);
+
+    // bouton avancer
+    fill(0);
+    rect(this.x, this.y + this.h - btnSize, btnSize, btnSize);
+    fill(255);
+    text("↑", this.x + btnSize / 2, this.y + this.h - btnSize / 2);
   }
-  }
+}
+
+  isOnBringForward() {
+  let m = screenToWorld(mouseX, mouseY);
+  let btnSize = 12;
+  return (
+    m.x > this.x &&
+    m.x < this.x + btnSize &&
+    m.y > this.y + this.h - btnSize &&
+    m.y < this.y + this.h
+  );
+}
+
+isOnSendBackward() {
+  let m = screenToWorld(mouseX, mouseY);
+  let btnSize = 12;
+  let gap = 2;
+  return (
+    m.x > this.x &&
+    m.x < this.x + btnSize &&
+    m.y > this.y + this.h - btnSize * 2 - gap &&
+    m.y < this.y + this.h - btnSize - gap
+  );
+}
+
 
   isMouseOver() {
     let worldMouse = screenToWorld(mouseX, mouseY);
@@ -490,19 +551,35 @@ class DraggableImage {
            worldMouse.y > this.y && worldMouse.y < this.y + 10;
   }
 
-  mousePressed() {
-    
-     if (mode === MODE_PUBLIC) return;
-     
-    let worldMouse = screenToWorld(mouseX, mouseY);
-    if (this.isOnDeleteCorner()) this.toDelete = true;
-    else if (this.isOnCorner()) this.resizing = true;
-    else if (this.isMouseOver()) {
-      this.dragging = true;
-      this.offsetX = worldMouse.x - this.x;
-      this.offsetY = worldMouse.y - this.y;
-    }
+mousePressed() {
+  if (mode === MODE_PUBLIC) return;
+
+  // Z-ORDER
+  if (this.isOnBringForward()) {
+    bringImageForward(this);
+    return;
   }
+
+  if (this.isOnSendBackward()) {
+    sendImageBackward(this);
+    return;
+  }
+
+  let worldMouse = screenToWorld(mouseX, mouseY);
+
+  if (this.isOnDeleteCorner()) {
+    this.toDelete = true;
+  } 
+  else if (this.isOnCorner()) {
+    this.resizing = true;
+  } 
+  else if (this.isMouseOver()) {
+    this.dragging = true;
+    this.offsetX = worldMouse.x - this.x;
+    this.offsetY = worldMouse.y - this.y;
+  }
+}
+
 
   mouseDragged() {
      if (mode === MODE_PUBLIC) return;
