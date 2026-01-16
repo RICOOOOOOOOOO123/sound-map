@@ -156,7 +156,10 @@ function importMedia(file, type) {
 if (type === "video") {
   let v = createVideo(path);
   v.hide();
+
+  // On mute la vidéo pour qu'elle puisse autoplay
   v.volume(0);
+  v.elt.muted = true;
 
   v.elt.onloadedmetadata = () => {
     let targetW = 320; // largeur par défaut
@@ -169,10 +172,13 @@ if (type === "video") {
     dv.aspect = ratio;
 
     videos.push(dv);
+
+    // Lancer la vidéo automatiquement
     v.loop();
-      dv.playing = true;
+    dv.playing = true;
   };
 }
+
 
 
   if (type === "audio") {
