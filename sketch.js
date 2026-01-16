@@ -154,29 +154,29 @@ function importMedia(file, type) {
   }
 
 if (type === "video") {
-  let v = createVideo(path);
-  v.hide();
+    // Création de la vidéo muette
+    let v = createVideo(path);
+    v.hide();
+    v.elt.muted = true;   // MUST be before play()
+    v.volume(0);          // Muet
+    v.elt.autoplay = true;
+    v.elt.loop = true;    // Boucle automatique
 
-  // On mute la vidéo pour qu'elle puisse autoplay
-  v.volume(0);
-  v.elt.muted = true;
+    v.elt.oncanplay = () => {
+      // Adapter le format à la vidéo
+      let ratio = v.elt.videoHeight / v.elt.videoWidth;
+      let targetW = 320;
+      let targetH = targetW * ratio;
 
-  v.elt.onloadedmetadata = () => {
-    let targetW = 320; // largeur par défaut
-    let ratio = v.elt.videoHeight / v.elt.videoWidth;
-    let targetH = targetW * ratio;
-
-    let dv = new DraggableVideo(v, 300, 300, path);
-    dv.w = targetW;
-    dv.h = targetH;
-    dv.aspect = ratio;
-
-    videos.push(dv);
-
-    // Lancer la vidéo automatiquement
-    v.loop();
-    dv.playing = true;
-  };
+      let dv = new DraggableVideo(v, 300, 300, path);
+      dv.w = targetW;
+      dv.h = targetH;
+      dv.aspect = ratio;
+      dv.playing = true; // état play correct
+      videos.push(dv);
+    };
+  }
+}
 }
 
 
