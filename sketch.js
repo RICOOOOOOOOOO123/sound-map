@@ -170,6 +170,7 @@ if (type === "video") {
 
     videos.push(dv);
     v.loop();
+      dv.playing = true;
   };
 }
 
