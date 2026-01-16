@@ -237,12 +237,35 @@ function mousePressed() {
   }
 
   // Vidéo
-  for (let i = videos.length - 1; i >= 0; i--) {
-    let v = videos[i];
-    if (v.isMouseOver() || v.isOnCorner() || v.isOnPlayPause()) {
-      activeObject = v; v.mousePressed(); return;
+for (let i = videos.length - 1; i >= 0; i--) {
+  let v = videos[i];
+  if (v.isMouseOver() || v.isOnCorner() || v.isOnPlayPause()) {
+
+    let action = v.mousePressed();
+
+    // 🔴 SUPPRESSION PROPRE
+    if (action === "delete") {
+      v.video.pause();
+      v.video.remove();
+      videos.splice(i, 1);
+      activeObject = null;
+      return;
     }
+
+    // ▶ play / pause
+    if (action === "toggle") {
+      if (v.playing) v.video.pause();
+      else v.video.play();
+      v.playing = !v.playing;
+      return;
+    }
+
+    // drag / resize
+    activeObject = v;
+    return;
   }
+}
+
 
   // Textes
   for (let i = texts.length - 1; i >= 0; i--) {
@@ -267,7 +290,7 @@ function mouseDragged() {
   }
 
   // ===== MODE ADMIN =====
-  if (activeObject) {
+  if (activeObject && !activeObject.toDelete) {
     activeObject.mouseDragged();
   }
   else if (keyIsDown(SHIFT)) {
@@ -572,39 +595,33 @@ constructor(video, x, y, src, playing = true) {
 
 mousePressed() {
 
-  let m = screenToWorld(mouseX, mouseY);
-
-  // --- PLAY / PAUSE (PUBLIC + ADMIN)
+  // PLAY / PAUSE (tous modes)
   if (this.isOnPlayPause()) {
-    if (this.playing) this.video.pause();
-    else this.video.play();
-    this.playing = !this.playing;
-    return;
+    return "toggle";
   }
 
-  if (mode === MODE_PUBLIC) return;
+  if (mode === MODE_PUBLIC) return null;
 
-  // --- SUPPRESSION (ADMIN)
   if (this.isOnDeleteCorner()) {
-    this.video.pause();
-    this.video.remove();   // SUPPRESSION HTML
-    this.toDelete = true;  // SUPPRESSION LOGIQUE
-    return;
+    return "delete";
   }
 
-  // --- RESIZE
   if (this.isOnCorner()) {
     this.resizing = true;
-    return;
+    return "resize";
   }
 
-  // --- DRAG
   if (this.isMouseOver()) {
+    let m = screenToWorld(mouseX, mouseY);
     this.dragging = true;
     this.offsetX = m.x - this.x;
     this.offsetY = m.y - this.y;
+    return "drag";
   }
+
+  return null;
 }
+
 
 
 
