@@ -451,11 +451,10 @@ class DraggableVideo {
     this.offsetY = 0;
     this.toDelete = false;
 this.playing = playing;
-if (this.playing) {
-  this.video.loop();
-} else {
-  this.video.pause();
-}
+this.video.volume(0); // obligatoire navigateur
+this.video.loop();    // force le chargement visuel
+this.playing = true;
+
 
   }
 
@@ -504,30 +503,45 @@ if (this.playing) {
            worldMouse.y > this.y && worldMouse.y < this.y + btnSize;
   }
 
-  mousePressed() {
-     if (mode === MODE_PUBLIC) return;
-    if (this.isOnDeleteCorner()) {
-      this.video.remove();
-      this.toDelete = true;
-      return;
-    }
-    if (this.isOnCorner()) {
-      this.resizing = true;
-      return;
-    }
+ mousePressed() {
+
+  // ✅ AUTORISER play/pause en mode visiteur
+  if (mode === MODE_PUBLIC) {
     if (this.isOnPlayPause()) {
       if (this.playing) this.video.pause();
       else this.video.play();
       this.playing = !this.playing;
-      return;
     }
-    if (this.isMouseOver()) {
-      let worldMouse = screenToWorld(mouseX, mouseY);
-      this.dragging = true;
-      this.offsetX = worldMouse.x - this.x;
-      this.offsetY = worldMouse.y - this.y;
-    }
+    return;
   }
+
+  // ----- MODE ADMIN -----
+  if (this.isOnDeleteCorner()) {
+    this.video.remove();
+    this.toDelete = true;
+    return;
+  }
+
+  if (this.isOnCorner()) {
+    this.resizing = true;
+    return;
+  }
+
+  if (this.isOnPlayPause()) {
+    if (this.playing) this.video.pause();
+    else this.video.play();
+    this.playing = !this.playing;
+    return;
+  }
+
+  if (this.isMouseOver()) {
+    let worldMouse = screenToWorld(mouseX, mouseY);
+    this.dragging = true;
+    this.offsetX = worldMouse.x - this.x;
+    this.offsetY = worldMouse.y - this.y;
+  }
+}
+
 
   mouseDragged() {
      if (mode === MODE_PUBLIC) return;
