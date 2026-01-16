@@ -239,14 +239,24 @@ function mousePressed() {
 }
 
 function mouseDragged() {
-  if (mode === MODE_PUBLIC) return;
 
-  if (activeObject) activeObject.mouseDragged();
-  else if (mouseIsPressed && keyIsDown(SHIFT)) {
+  // ===== MODE VISITEUR =====
+  if (mode === MODE_PUBLIC) {
+    offsetX += movedX;
+    offsetY += movedY;
+    return;
+  }
+
+  // ===== MODE ADMIN =====
+  if (activeObject) {
+    activeObject.mouseDragged();
+  }
+  else if (keyIsDown(SHIFT)) {
     offsetX += movedX;
     offsetY += movedY;
   }
 }
+
 
 function mouseReleased() {
   if (mode === MODE_PUBLIC) return;
