@@ -752,12 +752,23 @@ function loadLayout(data) {
     });
   });
 
-  if (data.videos) data.videos.forEach(v => {
-    let vid = createVideo(v.src, () => { if(v.playing) vid.loop(); else vid.pause(); vid.volume(0); });
-    vid.hide();
-    let dv = new DraggableVideo(vid,v.x,v.y,v.src,v.playing??true);
-    dv.w = v.w; dv.h = v.h; videos.push(dv);
-  });
+ if (data.videos) data.videos.forEach(v => {
+  let vid = createVideo(v.src);
+  vid.hide();
+  vid.elt.muted = true; // autoplay
+  vid.volume(0);
+  vid.elt.autoplay = true;
+  vid.elt.loop = true;
+
+  vid.elt.oncanplay = () => {
+    let dv = new DraggableVideo(vid, v.x, v.y, v.src, true);
+    dv.w = v.w;
+    dv.h = v.h;
+    dv.aspect = v.h / v.w;
+    dv.playing = true;
+    videos.push(dv);
+  };
+});
 
   if (data.texts) data.texts.forEach(t => {
     let tb = new TextBlock(t.content,t.type,t.x,t.y);
