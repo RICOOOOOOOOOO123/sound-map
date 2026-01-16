@@ -373,12 +373,15 @@ class DraggableImage {
 
   display() {
     image(this.pic, this.x, this.y, this.w, this.h);
+
+    if (mode === MODE_ADMIN) {
     noStroke();
     fill(120, 255, 255);
     rect(this.x + this.w - 5, this.y + this.h - 5, 5, 5);
     stroke(255);
     fill(0);
     rect(this.x, this.y, 5, 5);
+  }
   }
 
   isMouseOver() {
@@ -463,13 +466,16 @@ this.playing = true;
     if (this.video.time() > 10) this.video.time(0);
     image(this.video, this.x, this.y, this.w, this.h);
 
+    if (mode === MODE_ADMIN) {
+
     noStroke();
     fill(120, 255, 255);
     rect(this.x + this.w - 5, this.y + this.h - 5, 5, 5);
 
     stroke(255);
     fill(0);
-    rect(this.x, this.y, 10, 10);
+    rect(this.x, this.y, 10, 10);  
+    }
 
     let btnSize = 15;
     fill(this.playing ? 'green' : 'red');
@@ -600,10 +606,12 @@ this.txtColor = type === "title" ? color(0) : color(0, 0, 255);
 
     fill(this.txtColor);
     text(this.content, this.x + this.padding, this.y + this.padding, this.maxWidth);
-
+    
+if (mode === MODE_ADMIN) {
     stroke(255);
     fill(0);
-    rect(this.x, this.y, 10, 10);
+  rect(this.x, this.y, 10, 10)
+  }
     pop();
   }
 
