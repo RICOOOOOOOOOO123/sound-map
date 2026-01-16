@@ -525,27 +525,24 @@ constructor(video, x, y, src, playing = true) {
 }
 
 
-  display() {
-    push();
-    if (this.video.time() > 10) this.video.time(0);
-    image(this.video, this.x, this.y, this.w, this.h);
+ display() {
+  image(this.video, this.x, this.y, this.w, this.h);
 
-    if (mode === MODE_ADMIN) {
-
+  if (mode === MODE_ADMIN) {
     noStroke();
     fill(120, 255, 255);
     rect(this.x + this.w - 5, this.y + this.h - 5, 5, 5);
 
     stroke(255);
     fill(0);
-    rect(this.x, this.y, 10, 10);  
-    }
-
-    let btnSize = 15;
-    fill(this.playing ? 'green' : 'red');
-    rect(this.x + this.w - btnSize, this.y, btnSize, btnSize);
-    pop();
+    rect(this.x, this.y, 10, 10);
   }
+
+  let btnSize = 15;
+  fill(this.playing ? 'green' : 'red');
+  rect(this.x + this.w - btnSize, this.y, btnSize, btnSize);
+}
+
 
   isMouseOver() {
     let worldMouse = screenToWorld(mouseX, mouseY);
@@ -573,30 +570,11 @@ constructor(video, x, y, src, playing = true) {
            worldMouse.y > this.y && worldMouse.y < this.y + btnSize;
   }
 
- mousePressed() {
+mousePressed() {
 
-  // ✅ AUTORISER play/pause en mode visiteur
-  if (mode === MODE_PUBLIC) {
-    if (this.isOnPlayPause()) {
-      if (this.playing) this.video.pause();
-      else this.video.play();
-      this.playing = !this.playing;
-    }
-    return;
-  }
+  let m = screenToWorld(mouseX, mouseY);
 
-  // ----- MODE ADMIN -----
-  if (this.isOnDeleteCorner()) {
-    this.video.remove();
-    this.toDelete = true;
-    return;
-  }
-
-  if (this.isOnCorner()) {
-    this.resizing = true;
-    return;
-  }
-
+  // --- PLAY / PAUSE (PUBLIC + ADMIN)
   if (this.isOnPlayPause()) {
     if (this.playing) this.video.pause();
     else this.video.play();
@@ -604,13 +582,30 @@ constructor(video, x, y, src, playing = true) {
     return;
   }
 
+  if (mode === MODE_PUBLIC) return;
+
+  // --- SUPPRESSION (ADMIN)
+  if (this.isOnDeleteCorner()) {
+    this.video.pause();
+    this.video.remove();   // SUPPRESSION HTML
+    this.toDelete = true;  // SUPPRESSION LOGIQUE
+    return;
+  }
+
+  // --- RESIZE
+  if (this.isOnCorner()) {
+    this.resizing = true;
+    return;
+  }
+
+  // --- DRAG
   if (this.isMouseOver()) {
-    let worldMouse = screenToWorld(mouseX, mouseY);
     this.dragging = true;
-    this.offsetX = worldMouse.x - this.x;
-    this.offsetY = worldMouse.y - this.y;
+    this.offsetX = m.x - this.x;
+    this.offsetY = m.y - this.y;
   }
 }
+
 
 
   mouseDragged() {
