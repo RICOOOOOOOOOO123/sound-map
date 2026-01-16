@@ -162,23 +162,24 @@ if (type === "video") {
     v.elt.autoplay = true;
     v.elt.loop = true;    // Boucle automatique
 
-    v.elt.oncanplay = () => {
-      // Adapter le format à la vidéo
-      let ratio = v.elt.videoHeight / v.elt.videoWidth;
-      let targetW = 320;
-      let targetH = targetW * ratio;
+   v.elt.oncanplay = () => {
 
-      let dv = new DraggableVideo(v, 300, 300, path);
-      dv.w = targetW;
-      dv.h = targetH;
-      dv.aspect = ratio;
-      dv.playing = true; // état play correct
-      videos.push(dv);
-    };
+  // 🔒 empêcher toute re-exécution
+  v.elt.oncanplay = null;
+
+  let ratio = v.elt.videoHeight / v.elt.videoWidth;
+  let targetW = 320;
+  let targetH = targetW * ratio;
+
+  let dv = new DraggableVideo(v, 300, 300, path);
+  dv.w = targetW;
+  dv.h = targetH;
+  dv.aspect = ratio;
+  dv.playing = true;
+
+  videos.push(dv);
+};
   }
-
-
-
 
   if (type === "audio") {
     players.push(
@@ -772,13 +773,19 @@ function loadLayout(data) {
   vid.elt.loop = true;
 
   vid.elt.oncanplay = () => {
-    let dv = new DraggableVideo(vid, v.x, v.y, v.src, true);
-    dv.w = v.w;
-    dv.h = v.h;
-    dv.aspect = v.h / v.w;
-    dv.playing = true;
-    videos.push(dv);
-  };
+
+  // 🔒 BLOQUER les doubles appels
+  vid.elt.oncanplay = null;
+
+  let dv = new DraggableVideo(vid, v.x, v.y, v.src, true);
+  dv.w = v.w;
+  dv.h = v.h;
+  dv.aspect = v.h / v.w;
+  dv.playing = true;
+
+  videos.push(dv);
+};
+
 });
 
   if (data.texts) data.texts.forEach(t => {
