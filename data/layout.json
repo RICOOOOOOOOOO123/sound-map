@@ -1,10 +1,24 @@
 {
   "canvas": {
-    "zoom": 0.5159124016344329,
-    "offsetX": 572.0712411326301,
-    "offsetY": -22.001637946929293
+    "zoom": 0.6360154323094248,
+    "offsetX": 227.5335457008669,
+    "offsetY": -86.27146797335774
   },
   "images": [
+    {
+      "src": "uploads/img7.jpg",
+      "x": 833.5583717207926,
+      "y": 1186.8087413013939,
+      "w": 469.7316373653323,
+      "h": 264.3957315579721
+    },
+    {
+      "src": "uploads/img6.jpg",
+      "x": 829.7161261169665,
+      "y": 907.2146531918952,
+      "w": 473.0461708992822,
+      "h": 266.261368123134
+    },
     {
       "src": "uploads/img5.jpg",
       "x": 113.47402271663162,
@@ -13,55 +27,51 @@
       "h": 429.9125558711406
     },
     {
-      "src": "uploads/img6.jpg",
-      "x": 785.6428767252842,
-      "y": 1219.9925521006078,
-      "w": 473.0461708992822,
-      "h": 266.261368123134
-    },
-    {
-      "src": "uploads/img7.jpg",
-      "x": 782.860477819356,
-      "y": 945.2392210287454,
-      "w": 469.7316373653323,
-      "h": 264.3957315579721
-    },
-    {
       "src": "uploads/img4.jpg",
-      "x": -271.9302664645671,
-      "y": 727.2087286149049,
+      "x": 704.0428016813498,
+      "y": 779.7751343417675,
       "w": 232.9353896525322,
       "h": 221.223554418606
-    },
-    {
-      "src": "uploads/img5.jpg",
-      "x": 268.98698315971603,
-      "y": 1083.8709799480926,
-      "w": 200,
-      "h": 120.66805845511482
     }
   ],
   "videos": [],
-  "texts": [],
-  "players": [
+  "texts": [
     {
-      "src": "uploads/histoire de fontaine (triste).wav",
-      "x": 868.9431070977523,
-      "y": 800.7599759199644,
-      "w": 180,
-      "h": 130
+      "content": "Réservoir de Ménilmontant",
+      "type": "title",
+      "x": 111.1885308204258,
+      "y": 926.5136966257529,
+      "maxWidth": 300,
+      "fontSize": 42
     },
     {
+      "content": "Le parc Paule Minck se trouve juste à côté du réservoir d’eau souterrain de Ménilmontant. La pelouse recouvrant l’emplacement du réservoir se devine à travers la clôture qui l’entoure. La proximité de ce réservoir nous permettait d’élargir le sujet des fontaines, à celui de l’approvisionnement de l’eau dans la ville. la différence d’échelle entre la fontaine et le réservoire, la dualité entre le visible et l’invisible nous ont convaincu de nous fixer sur ce parc.",
+      "type": "body",
+      "x": 312.31379146823303,
+      "y": 1063.4550710304522,
+      "maxWidth": 400,
+      "fontSize": 18
+    }
+  ],
+  "players": [
+    {
       "src": "uploads/chanson.wav",
-      "x": 1209.2415220695525,
-      "y": 1131.6263996520574,
+      "x": 1258.451245794844,
+      "y": 1375.3037491747793,
       "w": 180,
       "h": 130
     },
     {
       "src": "uploads/une.fontaine.wav",
       "x": 778.6957358631018,
-      "y": 436.370852968617,
+      "y": 439.6530529819801,
+      "w": 180,
+      "h": 130
+    },
+    {
+      "src": "uploads/son1.mp3",
+      "x": 446.6017787197038,
+      "y": 934.9533793547998,
       "w": 180,
       "h": 130
     }
